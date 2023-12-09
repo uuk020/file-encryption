@@ -18,7 +18,7 @@ This is a file encryption and decryption tool written in Go.
     ./fileEncryption -m=decryption -f=encrypted/file -p="password"
     ```
 
-###TODO
+### TODO
 - Encrypt or decrypt all files in a folder.
 - Add a progress bar.
 
