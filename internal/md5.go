@@ -1,6 +1,8 @@
 package internal
 
-import "strconv"
+import (
+	"strconv"
+)
 
 func RotateLeft(lValue uint32, iShiftBits uint32) uint32 {
 	return (lValue << iShiftBits) | (lValue >> (32 - iShiftBits))
@@ -63,8 +65,8 @@ func II(a, b, c, d, x, s, ac uint32) uint32 {
 	return AddUnsigned(RotateLeft(a, s), b)
 }
 
-func ConvertToWordArray(sMessage string) []uint32 {
-	lMessageLength := len(sMessage)
+func ConvertToWordArray(code string) []uint32 {
+	lMessageLength := len(code)
 	lNumberOfWords_temp1 := lMessageLength + 8
 	lNumberOfWords_temp2 := (lNumberOfWords_temp1 - (lNumberOfWords_temp1 % 64)) / 64
 	lNumberOfWords := (lNumberOfWords_temp2 + 1) * 16
@@ -75,7 +77,7 @@ func ConvertToWordArray(sMessage string) []uint32 {
 	for lByteCount < lMessageLength {
 		lWordCount := (lByteCount - (lByteCount % 4)) / 4
 		lBytePosition = uint32(lByteCount%4) * 8
-		lWordArray[lWordCount] = lWordArray[lWordCount] | (uint32(sMessage[lByteCount]) << lBytePosition)
+		lWordArray[lWordCount] = lWordArray[lWordCount] | (uint32(code[lByteCount]) << lBytePosition)
 		lByteCount++
 	}
 
@@ -102,8 +104,8 @@ func WordToHex(lValue uint32) string {
 	return WordToHexValue
 }
 
-func MD5(sMessage string, bit uint8) string {
-	var x = ConvertToWordArray(sMessage)
+func GenerateKey(code string, bit uint8) []byte {
+	var x = ConvertToWordArray(code)
 
 	var k, AA, BB, CC, DD, a, b, c, d uint32
 
@@ -191,7 +193,7 @@ func MD5(sMessage string, bit uint8) string {
 		d = AddUnsigned(d, DD)
 	}
 	if bit == 32 {
-		return WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d)
+		return []byte(WordToHex(a) + WordToHex(b) + WordToHex(c) + WordToHex(d))
 	}
-	return WordToHex(b) + WordToHex(c)
+	return []byte(WordToHex(b) + WordToHex(c))
 }

@@ -5,14 +5,12 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
 // EncryptFile Encrypt a file
-func EncryptFile(filePath, code string) error {
-	key := MD5(code, 16)
-	iv := MD5(code, 16)
-
+func EncryptFile(filePath string, key []byte) error {
 	var buf []byte
 
 	_, err := os.Stat(filePath)
@@ -28,7 +26,7 @@ func EncryptFile(filePath, code string) error {
 	if err != nil {
 		return err
 	}
-	mode := cipher.NewCBCEncrypter(block, []byte(iv))
+	mode := cipher.NewCBCEncrypter(block, []byte(key))
 
 	padding := aes.BlockSize - len(buf)%aes.BlockSize
 	padText := append([]byte(buf), bytes.Repeat([]byte{byte(padding)}, padding)...)
@@ -49,11 +47,33 @@ func EncryptFile(filePath, code string) error {
 	return nil
 }
 
-// DecryptFile decrypts an encrypted file
-func DecryptFile(filePath, code string) error {
-	key := MD5(code, 16)
-	iv := MD5(code, 16)
+// EncryptDir encrypts all files in a directory
+func EncryptDir(path string, key []byte) error {
+	// 遍历目录
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if strings.HasSuffix(path, ".xu") {
+			return nil
+		}
+		err = EncryptFile(path, key)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
+// DecryptFile decrypts an encrypted file
+func DecryptFile(filePath string, key []byte) error {
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return err
@@ -64,11 +84,11 @@ func DecryptFile(filePath, code string) error {
 		return err
 	}
 
-	block, err := aes.NewCipher([]byte(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		return err
 	}
-	mode := cipher.NewCBCDecrypter(block, []byte(iv))
+	mode := cipher.NewCBCDecrypter(block, key)
 
 	var plaintext = make([]byte, len(buf))
 	mode.CryptBlocks(plaintext, buf)
@@ -88,5 +108,30 @@ func DecryptFile(filePath, code string) error {
 		return err
 	}
 
+	return nil
+}
+
+// DecryptDir decrypts all encrypted files in a directory
+func DecryptDir(path string, key []byte) error {
+	// 遍历目录
+	err := filepath.Walk(path, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if info.IsDir() {
+			return nil
+		}
+		if !strings.HasSuffix(path, ".xu") {
+			return nil
+		}
+		err = DecryptFile(path, key)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
 	return nil
 }
