@@ -60,7 +60,7 @@ func main() {
 			fmt.Println("File decrypted successfully!")
 		}
 	} else {
-		log.Fatal("mode must be encrypt or decrypt")
+		log.Fatal("mode must be encryption or decryption")
 	}
 
 }

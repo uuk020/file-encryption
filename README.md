@@ -29,7 +29,7 @@ This is a file encryption and decryption tool written in Go. It can also decrypt
 
 ### TODO List
 1. ~~Traverse all files in a folder for encryption or decryption~~
-2. Add a progress bar
+2. ~~Add a progress bar~~
 
 
 ### Reference Project

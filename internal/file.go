@@ -4,9 +4,12 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
+
+	"github.com/schollz/progressbar/v3"
 )
 
 // EncryptFile Encrypt a file
@@ -35,11 +38,17 @@ func EncryptFile(filePath string, key []byte) error {
 	mode.CryptBlocks(ciphertext, padText)
 
 	filename := filePath + ".xu"
-	o, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
-	_, err = o.Write(ciphertext)
+	defer f.Close()
+
+	bar := progressbar.DefaultBytes(
+		int64(len(ciphertext)),
+		"Encrypting file: ",
+	)
+	_, err = io.Copy(io.MultiWriter(f, bar), bytes.NewReader(ciphertext))
 	if err != nil {
 		return err
 	}
@@ -95,15 +104,20 @@ func DecryptFile(filePath string, key []byte) error {
 
 	// 去除 .xu 后缀获取原文件名
 	filename := strings.TrimSuffix(filePath, ".xu")
-	o, err := os.Create(filename)
+	f, err := os.OpenFile(filename, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
 	// 去除尾部填充
 	padding := int(plaintext[len(plaintext)-1])
 	plaintext = plaintext[:len(plaintext)-padding]
-	_, err = o.Write(plaintext)
+	bar := progressbar.DefaultBytes(
+		int64(len(plaintext)),
+		"Decrypting file: ",
+	)
+	_, err = io.Copy(io.MultiWriter(f, bar), bytes.NewReader(plaintext))
 	if err != nil {
 		return err
 	}
