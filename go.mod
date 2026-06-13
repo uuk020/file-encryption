@@ -1,12 +1,20 @@
 module github.com/uuk020/fileEncryption
 
-go 1.21.5
-
-require github.com/schollz/progressbar/v3 v3.14.1
+go 1.25.0
 
 require (
+	github.com/schollz/progressbar/v3 v3.14.1
+	github.com/stretchr/testify v1.11.1
+	golang.org/x/term v0.44.0
+)
+
+require (
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	golang.org/x/sys v0.15.0 // indirect
-	golang.org/x/term v0.15.0 // indirect
+	golang.org/x/crypto v0.53.0 // indirect
+	golang.org/x/sync v0.21.0 // indirect
+	golang.org/x/sys v0.46.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

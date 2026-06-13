@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -12,8 +13,13 @@ import (
 	"github.com/schollz/progressbar/v3"
 )
 
-// EncryptFile Encrypt a file
-func EncryptFile(filePath string, key []byte) error {
+// 旧格式代码保留用于向后兼容
+// 以下加密/解密函数使用旧版.xu文件格式
+// 新代码应使用 EncryptFileNew / DecryptFileNew
+
+// EncryptFileLegacy encrypts a file using the legacy .xu format.
+// Deprecated: Use EncryptFileNew
+func EncryptFileLegacy(filePath string, key []byte) error {
 	var buf []byte
 
 	_, err := os.Stat(filePath)
@@ -56,6 +62,12 @@ func EncryptFile(filePath string, key []byte) error {
 	return nil
 }
 
+// EncryptFile is an alias for EncryptFileLegacy for backward compatibility.
+// Deprecated: Use EncryptFileNew
+func EncryptFile(filePath string, key []byte) error {
+	return EncryptFileLegacy(filePath, key)
+}
+
 // EncryptDir encrypts all files in a directory
 func EncryptDir(path string, key []byte) error {
 	// 遍历目录
@@ -81,8 +93,9 @@ func EncryptDir(path string, key []byte) error {
 	return nil
 }
 
-// DecryptFile decrypts an encrypted file
-func DecryptFile(filePath string, key []byte) error {
+// DecryptFileLegacy decrypts an encrypted file using the legacy .xu format.
+// Deprecated: Use DecryptFileNew
+func DecryptFileLegacy(filePath string, key []byte) error {
 	_, err := os.Stat(filePath)
 	if err != nil {
 		return err
@@ -91,6 +104,10 @@ func DecryptFile(filePath string, key []byte) error {
 	buf, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
+	}
+
+	if len(buf)%aes.BlockSize != 0 {
+		return errors.New("invalid ciphertext size: not aligned to AES block size")
 	}
 
 	block, err := aes.NewCipher(key)
@@ -124,6 +141,14 @@ func DecryptFile(filePath string, key []byte) error {
 
 	return nil
 }
+
+// DecryptFile is an alias for DecryptFileLegacy for backward compatibility.
+// Deprecated: Use DecryptFileNew
+func DecryptFile(filePath string, key []byte) error {
+	return DecryptFileLegacy(filePath, key)
+}
+
+
 
 // DecryptDir decrypts all encrypted files in a directory
 func DecryptDir(path string, key []byte) error {
